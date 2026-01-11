@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СетьПро Роутеры и Сайты | Профессиональная настройка OpenWrt</title>
+    
+    <!-- Подключение шрифтов (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Иконки Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --primary: #0f172a;       
+            --primary-light: #1e293b; 
+            --text-main: #334155;     
+            --text-light: #64748b;    
+            --accent: #0ea5e9;        
+            --accent-hover: #0284c7;  
+            --green: #22c55e;         
+            --bg-body: #f8fafc;       
+            --bg-card: #ffffff;
+            --white: #ffffff;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --radius: 12px;
+            --border-light: 1px solid #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        
+        /* Исправление футера (Sticky Footer) */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Главный контент растягивается, толкая футер вниз */
+        main { flex: 1; }
+
+        a { text-decoration: none; transition: all 0.3s ease; }
+        ul { list-style: none; }
+        img { max-width: 100%; display: block; }
+
+        /* --- LAYOUT --- */
+        .container { max-width: 1140px; margin: 0 auto; padding: 0 20px; }
+        section { padding: 80px 0; }
+        
+        section:nth-child(even) { background-color: var(--bg-body); }
+        section:nth-child(odd) { background-color: #ffffff; }
+
+        /* --- COMPONENTS --- */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 14px 28px; font-weight: 600; border-radius: 8px; cursor: pointer;
+            border: none; font-size: 1rem; gap: 10px; transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .btn-primary { background: var(--accent); color: var(--white); box-shadow: 0 4px 6px rgba(14, 165, 233, 0.2); }
+        .btn-primary:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 6px 12px rgba(14, 165, 233, 0.3); transform: translateY(-2px); }
+
+        .btn-telegram { background-color: #229ED9; color: white; box-shadow: 0 4px 6px rgba(34, 158, 217, 0.2); }
+        .btn-telegram:hover { background-color: #1b8bbf; box-shadow: 0 6px 12px rgba(34, 158, 217, 0.3); transform: translateY(-2px); }
+
+        .btn-avito { background-color: #96c747; color: white; box-shadow: 0 4px 6px rgba(150, 199, 71, 0.2); }
+        .btn-avito:hover { background-color: #82b03a; box-shadow: 0 6px 12px rgba(150, 199, 71, 0.3); transform: translateY(-2px); }
+
+        .btn-outline { background: transparent; border: 2px solid var(--accent); color: var(--accent); }
+        .btn-outline:hover { background: var(--accent); color: white; }
+
+        .section-title { text-align: center; margin-bottom: 60px; }
+        .section-title h2 { font-size: 2.25rem; color: var(--primary); font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em; }
+        .section-title p { color: var(--text-light); font-size: 1.15rem; max-width: 650px; margin: 0 auto; }
+
+        /* --- HERO --- */
+        .hero {
+            /* Image: images/hero.jpg */
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.88)),
+                        url('images/hero.jpg');
+            background-size: cover; background-position: center; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center; text-align: center; color: var(--white); position: relative;
+            padding-top: 40px;
+        }
+        .hero-content { max-width: 900px; padding: 20px; z-index: 2; display: flex; flex-direction: column; align-items: center;}
+        
+        /* Hero Logo Area */
+        .hero-logo-container {
+            width: 100px; height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        /* Image: images/logo.png */
+        .hero-logo-img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(14, 165, 233, 0.15);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            color: #7dd3fc;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            backdrop-filter: blur(5px);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .hero h1 { font-size: 3.5rem; font-weight: 800; line-height: 1.15; margin-bottom: 24px; letter-spacing: -0.03em; }
+        .hero p { font-size: 1.25rem; color: #cbd5e1; margin-bottom: 30px; font-weight: 300; max-width: 700px; }
+        
+        .hero-features {
+            display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px;
+            font-size: 0.95rem; color: #e2e8f0;
+        }
+        .hero-features li { display: flex; align-items: center; gap: 8px; }
+        .hero-features i { color: var(--accent); }
+
+        .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+        /* --- CARDS (General) --- */
+        .card {
+            background: var(--bg-card); padding: 40px 30px; border-radius: var(--radius);
+            box-shadow: var(--shadow); transition: transform 0.3s ease, box-shadow 0.3s ease; 
+            border: var(--border-light);
+            height: 100%; display: flex; flex-direction: column;
+        }
+        .card:hover { transform: translateY(-8px); box-shadow: var(--shadow-hover); border-color: var(--accent); }
+        .card-icon { font-size: 2.5rem; color: var(--accent); margin-bottom: 20px; display: inline-block; }
+        .card h3 { font-size: 1.25rem; margin-bottom: 15px; color: var(--primary); font-weight: 700;}
+        .card p { color: var(--text-light); font-size: 0.95rem; flex-grow: 1; }
+
+        /* --- SERVICES Grid --- */
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+
+        /* --- USE CASES --- */
+        .tasks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+        .task-card {
+            background: #fff; padding: 25px; border-radius: var(--radius); border: var(--border-light);
+            display: flex; align-items: flex-start; gap: 15px; transition: 0.3s;
+        }
+        .task-card:hover { background: #f8fafc; border-color: var(--accent); }
+        .task-icon {
+            background: rgba(14, 165, 233, 0.1); color: var(--accent); width: 45px; height: 45px;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; flex-shrink: 0;
+        }
+        .task-content h4 { font-size: 1.1rem; margin-bottom: 5px; color: var(--primary); }
+        .task-content p { font-size: 0.9rem; color: var(--text-light); line-height: 1.5; }
+
+        /* --- AUDIENCE --- */
+        .audience-wrapper { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; text-align: center; }
+        .audience-item { max-width: 200px; }
+        .audience-icon {
+            width: 70px; height: 70px; background: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;
+            font-size: 1.8rem; color: var(--primary); box-shadow: var(--shadow); border: var(--border-light);
+        }
+        .audience-item h4 { margin-bottom: 5px; color: var(--primary); }
+        .audience-item span { font-size: 0.9rem; color: var(--text-light); }
+
+        /* --- ABOUT --- */
+        .about-section { background-color: var(--white); }
+        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .features-list li { display: flex; align-items: flex-start; margin-bottom: 24px; }
+        .features-list i { color: var(--green); font-size: 1.25rem; margin-right: 16px; margin-top: 4px; }
+        /* Image: images/work.jpg */
+        .about-img { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); border: var(--border-light); }
+        .about-img img { width: 100%; height: auto; }
+
+        /* --- WORKFLOW --- */
+        .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; counter-reset: step; }
+        .step-item { position: relative; padding-top: 20px; }
+        .step-number {
+            font-size: 4rem; font-weight: 800; color: rgba(14, 165, 233, 0.1);
+            position: absolute; top: -20px; left: 0; z-index: 0; line-height: 1;
+        }
+        .step-content { position: relative; z-index: 1; }
+        .step-content h4 { font-size: 1.2rem; margin-bottom: 10px; color: var(--primary); }
+        .step-content p { font-size: 0.95rem; color: var(--text-light); }
+        
+        /* --- TRUST --- */
+        .trust-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; text-align: center; }
+        .trust-item i { font-size: 2.5rem; color: var(--green); margin-bottom: 20px; }
+        .trust-item h4 { font-size: 1.2rem; margin-bottom: 10px; color: var(--primary); }
+
+        /* --- FAQ --- */
+        .faq-container { max-width: 800px; margin: 0 auto; }
+        details {
+            background: white; border: var(--border-light); border-radius: 8px;
+            margin-bottom: 15px; overflow: hidden; transition: all 0.3s;
+        }
+        details[open] { border-color: var(--accent); box-shadow: 0 4px 10px rgba(14, 165, 233, 0.1); }
+        summary {
+            padding: 20px; cursor: pointer; font-weight: 600; color: var(--primary);
+            list-style: none; display: flex; justify-content: space-between; align-items: center;
+        }
+        summary::-webkit-details-marker { display: none; }
+        summary::after {
+            content: '\f078'; font-family: "Font Awesome 6 Free"; font-weight: 900;
+            transition: transform 0.3s; color: var(--accent);
+        }
+        details[open] summary::after { transform: rotate(180deg); }
+        .faq-answer { padding: 0 20px 20px; color: var(--text-light); border-top: 1px solid #f1f5f9; padding-top: 15px; }
+
+        /* --- CONTACT & FORM --- */
+        .contact-section { background-color: #f1f5f9; }
+        .contact-wrapper {
+            display: grid; grid-template-columns: 1fr 1.5fr; gap: 40px;
+            background: var(--white); border-radius: 20px; padding: 40px; box-shadow: var(--shadow);
+            border: var(--border-light);
+        }
+        .contact-info h3 { margin-bottom: 1rem; color: var(--primary); }
+        .contact-info p { margin-bottom: 2rem; color: var(--text-light); }
+        .contact-methods { display: flex; flex-direction: column; gap: 15px; }
+        .form-container { background: white; border-radius: 12px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--primary); }
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: inherit; font-size: 1rem; transition: 0.3s; background: #f8fafc;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--accent); background: var(--white); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+        .form-group textarea { min-height: 120px; resize: vertical; }
+        .form-hint { font-size: 0.85rem; color: #94a3b8; margin-top: 10px; text-align: center; }
+
+        /* --- STATUS MESSAGES --- */
+        .status-message {
+            display: none; padding: 30px; text-align: center; border-radius: 12px;
+            animation: fadeIn 0.5s ease;
+        }
+        .status-success { background: #dcfce7; color: #14532d; border: 1px solid #bbf7d0; }
+        .status-error { background: #fee2e2; color: #7f1d1d; border: 1px solid #fecaca; }
+        .status-icon { font-size: 3rem; margin-bottom: 15px; display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- FOOTER --- */
+        footer { 
+            background: var(--primary); 
+            color: #94a3b8; 
+            padding: 60px 0 30px; 
+            text-align: center; 
+            position: relative;
+            margin-top: auto; /* Push to bottom */
+            width: 100%;
+        }
+        
+        .footer-brand { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .footer-logo-circle {
+            width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: var(--white); border: 1px solid rgba(255,255,255,0.2);
+        }
+        .footer-logo-text { color: var(--white); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+        
+        .footer-slogan-line {
+            font-size: 1rem; color: #cbd5e1; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;
+        }
+        .footer-separator { width: 4px; height: 4px; background: var(--accent); border-radius: 50%; display: inline-block; }
+
+        .social-links { margin: 30px 0; display: flex; justify-content: center; gap: 20px; }
+        .social-links a { color: var(--white); font-size: 1.5rem; opacity: 0.7; transition: 0.3s; }
+        .social-links a:hover { opacity: 1; color: var(--accent); transform: translateY(-3px); }
+        .scroll-top-btn {
+            position: absolute; bottom: 40px; right: 40px; background: var(--accent); color: var(--white);
+            width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 10;
+        }
+        .scroll-top-btn:hover { background: var(--accent-hover); transform: translateY(-3px); }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 900px) {
+            .about-grid, .contact-wrapper { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2.2rem; }
+            .contact-wrapper { padding: 25px; }
+            .steps-grid { grid-template-columns: 1fr; gap: 40px; }
+            .step-number { top: 0; left: -10px; font-size: 3rem; }
+            .step-item { padding-left: 40px; padding-top: 0; }
+        }
+    </style>
+</head>
+<body id="top">
+
+    <!-- Используем main wrapper, чтобы футер всегда был внизу -->
+    <main>
+
+        <!-- HERO SECTION -->
+        <header class="hero">
+            <div class="container hero-content">
+                <!-- Logo Placeholder (Circle) -->
+                <div class="hero-logo-container">
+                    <img src="images/logo.png" alt="Логотип СетьПро" class="hero-logo-img">
+                </div>
+
+                <!-- Badge -->
+                <div class="hero-badge">СетьПро • Удалённая настройка</div>
+                
+                <h1>Профессиональная настройка роутеров OpenWrt</h1>
+                <p>Стабильный интернет, безопасность и гибкое управление трафиком. Полностью удаленная конфигурация под ваши задачи.</p>
+                
+                <!-- Features List in Hero -->
+                <ul class="hero-features">
+                    <li><i class="fas fa-check-circle"></i> Стабильность</li>
+                    <li><i class="fas fa-shield-alt"></i> Безопасность</li>
+                    <li><i class="fas fa-route"></i> Гибкая маршрутизация</li>
+                    <li><i class="fas fa-user-cog"></i> Под задачи клиента</li>
+                </ul>
+
+                <div class="hero-buttons">
+                    <a href="#contact" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Заказать настройку
+                    </a>
+                    <a href="https://t.me/owrtmaster" target="_blank" class="btn btn-telegram">
+                        <i class="fab fa-telegram-plane"></i> Telegram
+                    </a>
+                    <a href="https://www.avito.ru/moskva/predlozheniya_uslug/nastroyka_openwrt_i_keenetic_pod_zadachi_7890976438" target="_blank" class="btn btn-avito">
+                        <i class="fas fa-star"></i> Авито
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- УСЛУГИ -->
+        <section id="services">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Основные услуги</h2>
+                    <p>Раскрываем полный потенциал вашего сетевого оборудования</p>
+                </div>
+                <div class="services-grid">
+                    <div class="card">
+                        <div class="card-icon"><i class="fas fa-microchip"></i></div>
+                        <h3>Тонкая настройка OpenWrt</h3>
+                        <p>Глубокая конфигурация системы OpenWrt. Установка необходимых пакетов, скриптов, драйверов и оптимизация производительности сети.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon"><i class="fas fa-network-wired"></i></div>
+                        <h3>Маршрутизация и доступ</h3>
+                        <p>Настройка умной маршрутизации трафика (PBR) для работы с удаленными ресурсами. Организация защищенных каналов связи.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h3>Безопасность и DNS</h3>
+                        <p>Защита от внешних угроз, настройка Firewall, шифрование DNS-запросов (DoH/DoT). Ваш интернет станет приватным.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ПРИМЕРЫ ЗАДАЧ -->
+        <section id="cases" style="background-color: #f8fafc;">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Примеры решаемых задач</h2>
+                    <p>С чем ко мне часто обращаются клиенты</p>
+                </div>
+                <div class="tasks-grid">
+                    <!-- ИЗМЕНЕНО: Блок Провайдеры удален и заменен -->
+                    <div class="task-card">
+                        <div class="task-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        <div class="task-content">
+                            <h4>Оптимизация соединения</h4>
+                            <p>Повышение стабильности работы сети, настройка резервного канала (Failover) и балансировка нагрузки.</p>
+                        </div>
+                    </div>
+                    <!-- Конец изменения -->
+                    
+                    <div class="task-card">
+                        <div class="task-icon"><i class="fas fa-wifi"></i></div>
+                        <div class="task-content">
+                            <h4>Гостевой Wi-Fi</h4>
+                            <p>Изолированная сеть для гостей, расписание работы Wi-Fi, контроль скорости.</p>
+                        </div>
+                    </div>
+                    <div class="task-card">
+                        <div class="task-icon"><i class="fas fa-gamepad"></i></div>
+                        <div class="task-content">
+                            <h4>Контроль устройств</h4>
+                            <p>Привязка IP по MAC, ограничения доступа для детских устройств (родительский контроль).</p>
+                        </div>
+                    </div>
+                    <div class="task-card">
+                        <div class="task-icon"><i class="fas fa-server"></i></div>
+                        <div class="task-content">
+                            <h4>Удаленный доступ</h4>
+                            <p>Безопасное подключение к домашней сети из любой точки мира (к камерам, NAS, принтеру).</p>
+                        </div>
+                    </div>
+                    <div class="task-card">
+                        <div class="task-icon"><i class="fas fa-lock"></i></div>
+                        <div class="task-content">
+                            <h4>Защищенные каналы</h4>
+                            <p>Организация шифрованных туннелей между офисами или квартирами для безопасности данных.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ПОЧЕМУ Я -->
+        <section id="about" class="about-section">
+            <div class="container">
+                <div class="about-grid">
+                    <div class="about-text">
+                        <div class="section-title" style="text-align: left; margin-bottom: 25px;">
+                            <h2>Почему выбирают меня</h2>
+                            <p>Узкая специализация и прозрачный процесс работы</p>
+                        </div>
+                        <ul class="features-list">
+                            <li>
+                                <i class="fas fa-desktop"></i>
+                                <div>
+                                    <strong>100% Удаленная работа.</strong>
+                                    <p>Не тратьте время на ожидание мастера. Настройка выполняется через <span>AnyDesk</span> или <span>RuDesktop</span>. Вы видите весь процесс на экране.</p>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-code"></i>
+                                <div>
+                                    <strong>Эксперт по OpenWrt.</strong>
+                                    <p>Я работаю исключительно с системой OpenWrt, зная все тонкости и скрытые возможности для гибкой настройки сети.</p>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-sliders-h"></i>
+                                <div>
+                                    <strong>Индивидуальный конфиг.</strong>
+                                    <p>Никаких шаблонов. Настройка делается под вашего провайдера и ваши конкретные потребности.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="about-img">
+                        <img src="images/work.jpg" alt="Рабочий процесс">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- С КЕМ РАБОТАЮ -->
+        <section id="audience" style="background-color: #f8fafc;">
+            <div class="container">
+                <div class="section-title">
+                    <h2>С кем я работаю</h2>
+                </div>
+                <div class="audience-wrapper">
+                    <div class="audience-item">
+                        <div class="audience-icon"><i class="fas fa-home"></i></div>
+                        <h4>Дом / Квартира</h4>
+                        <span>Стабильный Wi-Fi для семьи</span>
+                    </div>
+                    <div class="audience-item">
+                        <div class="audience-icon"><i class="fas fa-briefcase"></i></div>
+                        <h4>Малый офис</h4>
+                        <span>Сеть для работы и клиентов</span>
+                    </div>
+                    <div class="audience-item">
+                        <div class="audience-icon"><i class="fas fa-laptop-code"></i></div>
+                        <h4>Удаленная работа</h4>
+                        <span>Безопасный доступ к ресурсам</span>
+                    </div>
+                    <div class="audience-item">
+                        <div class="audience-icon"><i class="fas fa-video"></i></div>
+                        <h4>Видеонаблюдение</h4>
+                        <span>Доступ к камерам и Умному дому</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ЭТАПЫ РАБОТЫ -->
+        <section id="workflow" style="background-color: #ffffff;">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Как проходит настройка</h2>
+                    <p>Всего 4 шага к идеально работающей сети</p>
+                </div>
+                <div class="steps-grid">
+                    <div class="step-item">
+                        <div class="step-number">01</div>
+                        <div class="step-content">
+                            <h4>Заявка</h4>
+                            <p>Вы оставляете заявку или пишете мне в Telegram. Описываете модель роутера и задачи.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">02</div>
+                        <div class="step-content">
+                            <h4>Согласование</h4>
+                            <p>Обсуждаем детали, стоимость и выбираем удобное время для сеанса связи.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">03</div>
+                        <div class="step-content">
+                            <h4>Настройка</h4>
+                            <p>Вы подключаетесь через AnyDesk. Я выполняю настройку удаленно, вы наблюдаете за процессом.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">04</div>
+                        <div class="step-content">
+                            <h4>Проверка</h4>
+                            <p>Тестируем работу всех функций, я даю рекомендации по эксплуатации. Всё готово!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- БЛОК ДОВЕРИЯ -->
+        <section id="trust" style="background-color: #f8fafc; padding-bottom: 40px;">
+            <div class="container">
+                <div class="trust-grid">
+                    <div class="trust-item">
+                        <i class="fas fa-user-shield"></i>
+                        <h4>Конфиденциальность</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-light);">Ваши данные доступа остаются только у вас. После настройки я отключаюсь.</p>
+                    </div>
+                    <div class="trust-item">
+                        <i class="fas fa-comments"></i>
+                        <h4>Понятные рекомендации</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-light);">Объясню простым языком, что было сделано и как этим пользоваться.</p>
+                    </div>
+                    <div class="trust-item">
+                        <i class="fas fa-tools"></i>
+                        <h4>Поддержка</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-light);">Остаюсь на связи для ответов на вопросы после завершения настройки.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" style="background-color: #ffffff;">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Частые вопросы</h2>
+                </div>
+                <div class="faq-container">
+                    <details>
+                        <summary>Что такое OpenWrt простыми словами?</summary>
+                        <div class="faq-answer">
+                            Это операционная система для роутеров, которая дает стабильность, безопасность и функции, которые обычно есть только в дорогом профессиональном оборудовании. Она позволяет гибко управлять сетью.
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Подойдет ли мой роутер?</summary>
+                        <div class="faq-answer">
+                            Я работаю с большинством популярных моделей, поддерживающих OpenWrt (Xiaomi, Linksys, TP-Link и др.). Напишите мне модель вашего устройства, и я подскажу, что можно сделать.
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Сколько времени занимает настройка?</summary>
+                        <div class="faq-answer">
+                            Базовая конфигурация занимает от 30 до 60 минут. Сложные задачи могут занять 1.5 - 2 часа.
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Что нужно подготовить от меня?</summary>
+                        <div class="faq-answer">
+                            Вам нужен компьютер (ноутбук или ПК), подключенный к роутеру, и установленная программа удаленного доступа (AnyDesk или RuDesktop). Также желательно иметь резервный интернет (например, с телефона) для связи в процессе настройки.
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <!-- КОНТАКТЫ И ФОРМА -->
+        <section id="contact" class="contact-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Связаться со мной</h2>
+                    <p>Напишите мне, и мы решим вашу задачу в кратчайшие сроки</p>
+                </div>
+                
+                <div class="contact-wrapper">
+                    <!-- Контакты -->
+                    <div class="contact-info">
+                        <h3>Быстрая связь</h3>
+                        <p>Для оперативного ответа рекомендую писать в Telegram. Если удобно — заполните форму, заявка придет мне на почту.</p>
+                        <div class="contact-methods">
+                            <a href="https://t.me/owrtmaster" target="_blank" class="btn btn-telegram" style="width: 100%;">
+                                <i class="fab fa-telegram-plane"></i> Написать @owrtmaster
+                            </a>
+                            <a href="https://www.avito.ru/moskva/predlozheniya_uslug/nastroyka_openwrt_i_keenetic_pod_zadachi_7890976438" target="_blank" class="btn btn-avito" style="width: 100%;">
+                                <i class="fas fa-star"></i> Профиль на Авито
+                            </a>
+                        </div>
+                        <div style="margin-top: 30px; font-size: 0.9rem; color: #64748b;">
+                            <i class="fas fa-info-circle"></i> Для работы потребуется ПК/ноутбук, подключенный к роутеру, и программа <strong>AnyDesk</strong> или <strong>RuDesktop</strong>.
+                        </div>
+                    </div>
+
+                    <!-- Форма с AJAX -->
+                    <div class="form-container">
+                        
+                        <form id="ajaxForm">
+                            <input type="hidden" name="_subject" value="Новая заявка СетьПро">
+                            <input type="hidden" name="_captcha" value="false">
+
+                            <div class="form-group">
+                                <label for="name">Ваше имя</label>
+                                <input type="text" id="name" name="name" placeholder="Иван" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact">Ваш Telegram или Email</label>
+                                <input type="text" id="contact" name="contact" placeholder="@username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="message">Модель роутера и задача</label>
+                                <textarea id="message" name="message" placeholder="Например: Xiaomi AX3000, нужно настроить доступ..." required></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary" id="submitBtn" style="width: 100%;">Отправить заявку</button>
+                            
+                            <p class="form-hint">Заявка придет мне на почту. Я отвечу вам в Telegram или по Email.</p>
+                            
+                            <div style="text-align: center; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
+                                <a href="https://t.me/owrtmaster" target="_blank" style="font-size: 0.9rem; color: var(--accent); font-weight: 500;">
+                                    <i class="fab fa-telegram"></i> Или напишите сразу в Telegram
+                                </a>
+                            </div>
+                        </form>
+
+                        <!-- Блок успеха -->
+                        <div id="successMessage" class="status-message status-success">
+                            <i class="fas fa-check-circle status-icon"></i>
+                            <h3 style="margin-bottom: 10px;">Заявка отправлена!</h3>
+                            <p style="margin-bottom: 20px;">Спасибо. Я получил вашу заявку и скоро свяжусь с вами.</p>
+                            <a href="https://t.me/owrtmaster" target="_blank" class="btn btn-telegram" style="width: 100%;">
+                                Перейти в Telegram
+                            </a>
+                        </div>
+
+                        <!-- Блок ошибки -->
+                        <div id="errorMessage" class="status-message status-error">
+                            <i class="fas fa-exclamation-circle status-icon"></i>
+                            <h3 style="margin-bottom: 10px;">Ошибка отправки</h3>
+                            <p style="margin-bottom: 20px;">Что-то пошло не так. Пожалуйста, напишите мне в Telegram.</p>
+                            <a href="https://t.me/owrtmaster" target="_blank" class="btn btn-telegram" style="width: 100%;">
+                                Написать в Telegram
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-brand">
+                <div class="footer-logo-circle">
+                    <i class="fas fa-network-wired"></i>
+                </div>
+                <div class="footer-logo-text">СетьПро Роутеры и Сайты</div>
+                <!-- ИЗМЕНЕНО: Удален дубль текста "СетьПро", оставлен слоган -->
+                <div class="footer-slogan-line">
+                    <span>Настройка и поддержка сетей</span>
+                    <span class="footer-separator"></span>
+                    <span>OpenWrt</span>
+                </div>
+            </div>
+            
+            <div class="social-links">
+                <a href="https://t.me/owrtmaster" target="_blank" title="Telegram"><i class="fab fa-telegram"></i></a>
+                <a href="mailto:karlqwerty123@mail.ru" title="Написать на Email"><i class="fas fa-envelope"></i></a>
+                <a href="https://www.avito.ru/moskva/predlozheniya_uslug/nastroyka_openwrt_i_keenetic_pod_zadachi_7890976438" target="_blank" title="Avito"><i class="fas fa-star"></i></a>
+            </div>
+            
+            <a href="#top" class="scroll-top-btn" title="Наверх">
+                <i class="fas fa-arrow-up"></i>
+            </a>
+        </div>
+    </footer>
+
+    <!-- JS СКРИПТ (AJAX) -->
+    <script>
+        document.getElementById('ajaxForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const form = this;
+            const btn = document.getElementById('submitBtn');
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+
+            const originalBtnText = btn.textContent;
+            btn.textContent = 'Отправка...';
+            btn.disabled = true;
+
+            const formData = new FormData(form);
+
+            fetch("https://formsubmit.co/ajax/karlqwerty123@mail.ru", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                form.style.display = 'none';
+                successMsg.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                form.style.display = 'none';
+                errorMsg.style.display = 'block';
+            });
+        });
+    </script>
+
+</body>
+</html>
